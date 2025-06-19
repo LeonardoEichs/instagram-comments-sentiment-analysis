@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import nltk
+import ssl
 import os
 from pathlib import Path
 
@@ -24,11 +26,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Set up NLTK data directory
-project_root = Path(__file__).parent.parent.parent.parent
+# Set up NLTK data directory  
+project_root = Path(__file__).parent.parent.parent
 nltk_data_dir = os.path.join(project_root, "nltk_data")
 os.makedirs(nltk_data_dir, exist_ok=True)
 nltk.data.path.insert(0, nltk_data_dir)
+
+# Fix SSL certificate issue for NLTK downloads
+try:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    pass
+else:
+    ssl._create_default_https_context = _create_unverified_https_context
 
 # Download NLTK data at startup if needed
 try:
@@ -36,14 +46,17 @@ try:
 except LookupError:
     nltk.download('vader_lexicon', download_dir=nltk_data_dir)
 
+# Mount static files
+static_dir = project_root / "static"
+app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
 # Include routers
 app.include_router(sentiment_router)
 
 
-@app.get("/", tags=["root"])
+@app.get("/", tags=["root"], include_in_schema=False)
 async def root():
-    """Root endpoint to check if the API is running."""
-    return {
-        "message": "Instagram Comment Sentiment Analysis API is running.",
-        "docs": "/docs"
-    }
+    """Serve the main frontend page."""
+    from fastapi.responses import FileResponse
+    static_path = static_dir / "index.html"
+    return FileResponse(static_path)

@@ -31,7 +31,6 @@ instagram-comment-sentiment-analysis/
 │   ├── test_analyzer.py      # Sentiment analyzer tests
 │   ├── test_api.py          # API endpoint tests
 │   └── test_emoji_support.py # Emoji functionality tests
-├── output/                   # Generated visualizations
 ├── requirements.txt          # Python dependencies
 └── Dockerfile               # Container configuration
 ```
