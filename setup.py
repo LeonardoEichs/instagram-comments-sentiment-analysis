@@ -15,8 +15,6 @@ setup(
         "nltk",
         "transformers",
         "torch",
-        "matplotlib",
-        "seaborn",
         "emoji",
         "fastapi",
         "uvicorn",

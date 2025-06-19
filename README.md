@@ -1,15 +1,17 @@
 # Instagram Comment Sentiment Analysis
 
-A Python project for analyzing the sentiment of Instagram comments using VADER and transformer models. The project provides both a REST API and command-line interface for sentiment analysis with emoji support and visualization capabilities.
+A Python project for analyzing the sentiment of Instagram comments using VADER and transformer models. The project provides both a web interface and REST API for sentiment analysis with emoji support and CSV processing capabilities.
 
 ## Features
 
-- Sentiment analysis of Instagram comments using VADER or transformer models
-- Emoji support for improved sentiment detection
-- REST API for analyzing comments via HTTP requests
-- Visualization tools for sentiment results
-- Clean architecture with separation of concerns
-- Comprehensive test suite
+- 🎯 Sentiment analysis using VADER and transformer models
+- 😊 Emoji support for improved sentiment detection  
+- 🌐 Web interface for CSV file upload and analysis
+- 🔗 REST API for analyzing comments via HTTP requests
+- 📊 CSV export with sentiment scores and summary statistics
+- 🏗️ Clean architecture with separation of concerns
+- 🧪 Comprehensive test suite
+- 🐳 Docker support for easy deployment
 
 ## Project Structure
 
@@ -23,15 +25,17 @@ instagram-comment-sentiment-analysis/
 │   │   └── use_cases/         # Business logic layer
 │   ├── sentiment_analysis/    # Core sentiment analysis logic
 │   │   ├── analyzer.py        # Main sentiment analyzer
-│   │   ├── emoji_utils.py     # Emoji processing utilities
-│   │   └── visualizer.py      # Data visualization tools
+│   │   └── emoji_utils.py     # Emoji processing utilities
 │   ├── main.py               # CLI demo script
 │   └── run_api.py            # API server runner
 ├── tests/                    # Test suite
 │   ├── test_analyzer.py      # Sentiment analyzer tests
 │   ├── test_api.py          # API endpoint tests
 │   └── test_emoji_support.py # Emoji functionality tests
+├── static/                   # Web interface files
+│   └── index.html           # Frontend application
 ├── requirements.txt          # Python dependencies
+├── sample_comments.csv       # Sample data for testing
 └── Dockerfile               # Container configuration
 ```
 
@@ -78,19 +82,22 @@ instagram-comment-sentiment-analysis/
    docker run -p 8000:8000 instagram-sentiment
    ```
 
-## Running the API Server
+## Usage
 
-Start the FastAPI server with:
+### Web Interface
 
-```bash
-python src/run_api.py
-```
+1. Start the server: `python src/run_api.py`
+2. Open your browser to `http://localhost:8000`
+3. Upload a CSV file with a 'comment' or 'Comment' column
+4. View analysis results and download the processed CSV
+
+### API Server
 
 The API will be available at http://localhost:8000 with interactive documentation at http://localhost:8000/docs
 
-## API Usage
+## API Endpoints
 
-### Analyze Comments
+### 1. Analyze Comments (JSON)
 
 Endpoint: `POST /sentiment/analyze`
 
@@ -139,15 +146,48 @@ Response:
 }
 ```
 
-## Running the CLI Demo
+### 2. Analyze CSV File
 
-To run the command-line demo:
+Endpoint: `POST /sentiment/analyze-csv`
+
+Upload a CSV file with a 'comment' or 'Comment' column containing Instagram comments.
+
+### 3. Download Results
+
+Endpoint: `POST /sentiment/download-csv`
+
+Download the sentiment analysis results as a CSV file with additional columns for sentiment scores and summary statistics.
+
+## CSV File Format
+
+Your CSV file should contain a column named either:
+- `comment` (lowercase)
+- `Comment` (uppercase)
+
+Example CSV:
+```csv
+comment
+"This is amazing! Love it! ❤️"
+"Not impressed with this post"
+"Great content as always! 👏"
+```
+
+The output CSV will include:
+- Original comment text
+- Sentiment classification (positive/negative/neutral)
+- Detailed sentiment scores
+- Detected emojis
+- Summary statistics at the bottom
+
+## CLI Demo
+
+Run the command-line demo:
 
 ```bash
 python src/main.py
 ```
 
-This will analyze sample comments and generate visualization files in the `output` directory.
+This will analyze sample comments and display results in the terminal.
 
 ## Running Tests
 
@@ -170,3 +210,43 @@ pytest tests/test_api.py
 # Test emoji support
 pytest tests/test_emoji_support.py
 ```
+
+## Deployment
+
+### Docker Deployment
+
+The easiest way to deploy is using Docker:
+
+```bash
+# Build the image
+docker build -t instagram-sentiment .
+
+# Run in production
+docker run -d -p 8000:8000 --name sentiment-app instagram-sentiment
+```
+
+### Environment Variables
+
+For production deployment, you can configure:
+
+- `PORT`: Server port (default: 8000)
+- `HOST`: Server host (default: 0.0.0.0)
+
+### Health Check
+
+Check if the API is running:
+```bash
+curl http://localhost:8000/docs
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make your changes and add tests
+4. Run tests: `pytest`
+5. Submit a pull request
+
+## License
+
+This project is open source and available under the MIT License.

@@ -10,15 +10,19 @@ sys.path.append(str(project_root))
 
 def main():
     """Run the FastAPI server using Uvicorn."""
-    # Get port from environment variable or use default
+    # Get configuration from environment variables
     port = int(os.environ.get("PORT", 8000))
+    host = os.environ.get("HOST", "0.0.0.0")
+    
+    # Determine if we're in production (disable reload in production)
+    is_production = os.environ.get("ENVIRONMENT", "development") == "production"
     
     # Configure and run Uvicorn server
     uvicorn.run(
         "src.api.app:app",
-        host="0.0.0.0",
+        host=host,
         port=port,
-        reload=True,
+        reload=not is_production,
         log_level="info"
     )
 
