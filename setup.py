@@ -13,8 +13,6 @@ setup(
         "pandas",
         "scikit-learn",
         "nltk",
-        "transformers",
-        "torch",
         "emoji",
         "fastapi",
         "uvicorn",

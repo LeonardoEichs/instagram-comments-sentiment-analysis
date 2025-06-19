@@ -1,6 +1,5 @@
 import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from transformers import pipeline
 import pandas as pd
 import numpy as np
 import emoji
@@ -21,7 +20,7 @@ class SentimentAnalyzer:
         
         Args:
             model_type (str): The type of model to use for sentiment analysis.
-                Options: "vader" (rule-based) or "transformer" (neural network).
+                Currently only supports "vader" (rule-based).
             emoji_weight (float): Weight to give to emoji sentiment scores (0-1).
                 Higher values give more importance to emojis.
         """
@@ -37,11 +36,8 @@ class SentimentAnalyzer:
             
             self.analyzer = SentimentIntensityAnalyzer()
         
-        elif model_type == "transformer":
-            self.analyzer = pipeline("sentiment-analysis")
-        
         else:
-            raise ValueError("Invalid model_type. Choose 'vader' or 'transformer'.")
+            raise ValueError("Invalid model_type. Currently only 'vader' is supported.")
     
     def analyze_comment(self, comment):
         """
@@ -59,78 +55,40 @@ class SentimentAnalyzer:
         # Extract emojis
         emojis = extract_emojis(comment)
         
-        if self.model_type == "vader":
-            # Get VADER sentiment scores
-            vader_scores = self.analyzer.polarity_scores(comment)
-            
-            # Get emoji sentiment scores
-            emoji_scores = get_emoji_sentiment_scores(comment)
-            
-            # For emoji-only content, give more weight to emoji scores
-            emojis = extract_emojis(comment)
-            is_emoji_only = len(emojis) > 0 and len(comment.strip()) == len(''.join(emojis))
-            
-            # Use emoji scores directly for emoji-only content, or combine for mixed content
-            if is_emoji_only and any(e in EMOJI_SENTIMENT for e in emojis):
-                # For emoji-only content with known emojis, use emoji scores directly
-                scores = emoji_scores
-            else:
-                # For mixed content or unknown emojis, combine scores
-                scores = combine_sentiment_scores(vader_scores, emoji_scores, self.emoji_weight)
-            
-            # Determine sentiment based on compound score
-            if scores['compound'] >= 0.05:
-                sentiment = "positive"
-            elif scores['compound'] <= -0.05:
-                sentiment = "negative"
-            else:
-                sentiment = "neutral"
-            
-            return {
-                "compound": scores["compound"],
-                "positive": scores["pos"],
-                "negative": scores["neg"],
-                "neutral": scores["neu"],
-                "sentiment": sentiment,
-                "emojis": emojis
-            }
+        # Get VADER sentiment scores
+        vader_scores = self.analyzer.polarity_scores(comment)
         
-        elif self.model_type == "transformer":
-            result = self.analyzer(comment)[0]
-            
-            # Map transformers output to our standard format
-            sentiment = result["label"].lower()
-            score = result["score"]
-            
-            # Get emoji sentiment scores
-            emoji_scores = get_emoji_sentiment_scores(comment)
-            
-            # If we have emojis, adjust the transformer score
-            if emoji_scores["pos"] > 0 or emoji_scores["neg"] > 0:
-                # For positive transformer sentiment, boost with positive emojis
-                if sentiment == "positive":
-                    score = score * (1 - self.emoji_weight) + emoji_scores["pos"] * self.emoji_weight
-                # For negative transformer sentiment, boost with negative emojis
-                elif sentiment == "negative":
-                    score = score * (1 - self.emoji_weight) + emoji_scores["neg"] * self.emoji_weight
-                
-                # Potentially flip sentiment if emoji sentiment is strong in the opposite direction
-                if sentiment == "positive" and emoji_scores["neg"] > 0.7:
-                    sentiment = "negative"
-                    score = emoji_scores["neg"]
-                elif sentiment == "negative" and emoji_scores["pos"] > 0.7:
-                    sentiment = "positive"
-                    score = emoji_scores["pos"]
-            
-            return {
-                "sentiment": sentiment,
-                "score": score,
-                "compound": score if sentiment == "positive" else -score if sentiment == "negative" else 0,
-                "positive": score if sentiment == "positive" else 0,
-                "negative": score if sentiment == "negative" else 0,
-                "neutral": score if sentiment == "neutral" else 0,
-                "emojis": emojis
-            }
+        # Get emoji sentiment scores
+        emoji_scores = get_emoji_sentiment_scores(comment)
+        
+        # For emoji-only content, give more weight to emoji scores
+        emojis = extract_emojis(comment)
+        is_emoji_only = len(emojis) > 0 and len(comment.strip()) == len(''.join(emojis))
+        
+        # Use emoji scores directly for emoji-only content, or combine for mixed content
+        if is_emoji_only and any(e in EMOJI_SENTIMENT for e in emojis):
+            # For emoji-only content with known emojis, use emoji scores directly
+            scores = emoji_scores
+        else:
+            # For mixed content or unknown emojis, combine scores
+            scores = combine_sentiment_scores(vader_scores, emoji_scores, self.emoji_weight)
+        
+        # Determine sentiment based on compound score
+        if scores['compound'] >= 0.05:
+            sentiment = "positive"
+        elif scores['compound'] <= -0.05:
+            sentiment = "negative"
+        else:
+            sentiment = "neutral"
+        
+        return {
+            "compound": scores["compound"],
+            "positive": scores["pos"],
+            "negative": scores["neg"],
+            "neutral": scores["neu"],
+            "sentiment": sentiment,
+            "emojis": emojis
+        }
     
     def analyze_comments(self, comments):
         """

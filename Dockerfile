@@ -37,9 +37,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV ENVIRONMENT=production
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/docs')" || exit 1
+# Health check (Railway doesn't need this, but keeping for other platforms)
+# HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+#     CMD python -c "import requests; requests.get('http://localhost:8000/docs')" || exit 1
 
 # Default command to run the API
 CMD ["python", "src/run_api.py"]
